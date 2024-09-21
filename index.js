@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+require("dotenv").config();
 
 const app = express();
 
@@ -20,7 +21,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:3069/api",
+        url: "https://poster.copartner.in/api",
       },
     ],
   },
@@ -32,12 +33,13 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const PORT = 3069;
+const mongoDBConnectionString = process.env.MONGODB_URI;
 
 mongoose
-  .connect(
-    "mongodb+srv://parveshtest:Parvesh%40123987@cluster0.qgfonjs.mongodb.net/PosterBackend?retryWrites=true&w=majority",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
+  .connect(mongoDBConnectionString, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     app.listen(PORT, () => {
       console.log(`app is listening on PORT ${PORT}`);
