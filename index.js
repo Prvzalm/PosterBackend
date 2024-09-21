@@ -49,35 +49,33 @@ mongoose
     console.error("Error connecting to MongoDB:", err.message);
   });
 
-const ExpertImageSchema = new mongoose.Schema(
+const RADashboardImageSchema = new mongoose.Schema(
   {
     expertId: {
       type: String,
-    },
-    imageName: {
-      type: String,
-      unique: true, // Ensures the imageName is unique
-    },
-    webImageUrl: {
-      type: String,
-    },
-    mobileImageUrl: {
-      type: String,
-    },
-    property: {
-      type: String,
-      enum: ["blur", "marketing", "premium"], // Restrict values
       required: true,
     },
-    subheading: {
-      type: Boolean,
-      default: false,
+    imageurl: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["blur", "marketing", "premium"], // You can adjust this based on the type requirements
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }
 );
 
-const ExpertImage = mongoose.model("Poster", ExpertImageSchema);
+const RADashboardImage = mongoose.model(
+  "RADashboardImage",
+  RADashboardImageSchema
+);
 
 const PosterSchema = new mongoose.Schema(
   {
@@ -106,172 +104,101 @@ const Poster = mongoose.model("AdminPoster", PosterSchema);
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     ExpertImage:
- *       type: object
- *       required:
- *         - expertId
- *         - imageName
- *         - webImageUrl
- *         - mobileImageUrl
- *         - property
- *       properties:
- *         expertId:
- *           type: string
- *           description: The expert's ID
- *         imageName:
- *           type: string
- *           description: The name of the image
- *         webImageUrl:
- *           type: string
- *           description: The URL of the web version of the image
- *         mobileImageUrl:
- *           type: string
- *           description: The URL of the mobile version of the image
- *         property:
- *           type: string
- *           enum: ["blur", "marketing", "premium"]
- *           description: The property of the image
- *         subheading:
- *           type: boolean
- *           description: Whether the image has a subheading
- */
-
-/**
- * @swagger
- * /expert-image:
+ * /ra-dashboard/image:
  *   post:
- *     summary: Add a new expert image
- *     tags: [ExpertImage]
+ *     summary: Add a new image for RA Dashboard
+ *     tags: [RADashboardImage]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ExpertImage'
+ *             type: object
+ *             properties:
+ *               expertId:
+ *                 type: string
+ *               imageurl:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [blur, marketing, premium]
+ *               name:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Expert image created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ExpertImage'
+ *         description: Image added successfully
  *       400:
- *         description: Bad request, required fields are missing or image name is duplicated
+ *         description: Bad request, required fields are missing
  *       500:
  *         description: Server error
  */
-router.post("/expert-image", async (req, res) => {
+router.post("/ra-dashboard/image", async (req, res) => {
   try {
-    const {
-      expertId,
-      imageName,
-      webImageUrl,
-      mobileImageUrl,
-      property,
-      subheading,
-    } = req.body;
+    const { expertId, imageurl, type, name } = req.body;
 
-    // Validate input
-    if (
-      !expertId ||
-      !imageName ||
-      !webImageUrl ||
-      !mobileImageUrl ||
-      !property
-    ) {
+    if (!expertId || !imageurl || !type || !name) {
       return res
         .status(400)
         .json({ message: "All required fields must be provided" });
     }
 
-    const newExpertImage = new ExpertImage({
+    const newImage = new RADashboardImage({
       expertId,
-      imageName,
-      webImageUrl,
-      mobileImageUrl,
-      property,
-      subheading,
+      imageurl,
+      type,
+      name,
     });
 
-    await newExpertImage.save();
+    await newImage.save();
 
     res.status(201).json({
-      message: "Expert image data saved successfully",
-      data: newExpertImage,
+      message: "Image added successfully",
+      data: newImage,
     });
   } catch (error) {
-    if (error.code === 11000 && error.keyPattern.imageName) {
-      return res.status(400).json({
-        message: `Image with name '${req.body.imageName}' already exists.`,
-      });
-    }
-
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 /**
  * @swagger
- * /expert-image/{id}:
+ * /ra-dashboard/image/{id}:
  *   patch:
- *     summary: Update an expert image by its ObjectId
- *     tags: [ExpertImage]
+ *     summary: Update an image by its ObjectId
+ *     tags: [RADashboardImage]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: The ObjectId of the expert image to update
+ *         description: The ObjectId of the image to update
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ExpertImage'
+ *             $ref: '#/components/schemas/RADashboardImage'
  *     responses:
  *       200:
- *         description: Expert image updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ExpertImage'
- *       400:
- *         description: Bad request, required fields are missing or image name is duplicated
+ *         description: Image updated successfully
  *       404:
- *         description: Expert image not found
+ *         description: Image not found
  *       500:
  *         description: Server error
  */
-router.patch("/expert-image/:id", async (req, res) => {
+router.patch("/ra-dashboard/image/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Ensure that at least one field is being updated
     if (!Object.keys(updateData).length) {
-      return res.status(400).json({
-        message: "No fields provided for update.",
-      });
+      return res
+        .status(400)
+        .json({ message: "No fields provided for update." });
     }
 
-    // Check if imageName already exists (excluding the current image being updated)
-    if (updateData.imageName) {
-      const existingImage = await ExpertImage.findOne({
-        imageName: updateData.imageName,
-        _id: { $ne: id }, // Exclude current document
-      });
-      if (existingImage) {
-        return res.status(400).json({
-          message: `Image with name '${updateData.imageName}' already exists.`,
-        });
-      }
-    }
-
-    // Find and update the image by its ID
-    const updatedImage = await ExpertImage.findByIdAndUpdate(
+    const updatedImage = await RADashboardImage.findByIdAndUpdate(
       id,
       { $set: updateData },
       { new: true, runValidators: true }
@@ -279,134 +206,133 @@ router.patch("/expert-image/:id", async (req, res) => {
 
     if (!updatedImage) {
       return res.status(404).json({
-        message: `No expert image found with id '${id}'`,
+        message: `No image found with id '${id}'`,
       });
     }
 
     res.status(200).json({
-      message: "Expert image updated successfully",
+      message: "Image updated successfully",
       data: updatedImage,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server Error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 /**
  * @swagger
- * /expert-image/{id}:
+ * /ra-dashboard/image/{id}:
  *   delete:
- *     summary: Delete an expert image by its ObjectId
- *     tags: [ExpertImage]
+ *     summary: Delete an image by its ObjectId
+ *     tags: [RADashboardImage]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: The ObjectId of the expert image to delete
+ *         description: The ObjectId of the image to delete
  *     responses:
  *       200:
- *         description: Expert image deleted successfully
+ *         description: Image deleted successfully
  *       404:
- *         description: Expert image not found
+ *         description: Image not found
  *       500:
  *         description: Server error
  */
-router.delete("/expert-image/:id", async (req, res) => {
+router.delete("/ra-dashboard/image/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the image by its ID and delete it
-    const deletedImage = await ExpertImage.findByIdAndDelete(id);
+    const deletedImage = await RADashboardImage.findByIdAndDelete(id);
 
     if (!deletedImage) {
       return res.status(404).json({
-        message: `No expert image found with id '${id}'`,
+        message: `No image found with id '${id}'`,
       });
     }
 
     res.status(200).json({
-      message: "Expert image deleted successfully",
+      message: "Image deleted successfully",
       data: deletedImage,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server Error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 /**
  * @swagger
- * /expert-images:
+ * /ra-dashboard/images:
  *   get:
- *     summary: Get all expert images
- *     tags: [ExpertImage]
+ *     summary: Get all images for RA Dashboard
+ *     tags: [RADashboardImage]
  *     responses:
  *       200:
- *         description: All expert images fetched successfully
+ *         description: A list of all images
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/ExpertImage'
+ *                 type: object
+ *                 properties:
+ *                   expertId:
+ *                     type: string
+ *                   imageurl:
+ *                     type: string
+ *                   type:
+ *                     type: string
+ *                   name:
+ *                     type: string
  *       500:
  *         description: Server error
  */
-router.get("/expert-images", async (req, res) => {
+router.get("/ra-dashboard/images", async (req, res) => {
   try {
-    const expertImages = await ExpertImage.find();
+    const images = await RADashboardImage.find();
     res.status(200).json({
-      message: "All expert images fetched successfully",
-      data: expertImages,
+      message: "Images retrieved successfully",
+      data: images,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server Error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 /**
  * @swagger
- * /expert-images/{expertId}:
+ * /ra-dashboard/images/{expertId}:
  *   get:
- *     summary: Get images for a specific expert
- *     tags: [ExpertImage]
+ *     summary: Get all posters by ExpertID
+ *     tags: [RADashboardImage]
  *     parameters:
  *       - in: path
  *         name: expertId
  *         schema:
  *           type: string
  *         required: true
- *         description: The expert's ID
+ *         description: The expertId of the posters
  *     responses:
  *       200:
- *         description: Expert images fetched successfully
+ *         description: Images for the given ExpertID retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/ExpertImage'
+ *                 $ref: '#/components/schemas/RADashboardImage'
  *       404:
  *         description: No images found for the provided expert ID
  *       500:
  *         description: Server error
  */
-router.get("/expert-images/:expertId", async (req, res) => {
+router.get("/ra-dashboard/images/:expertId", async (req, res) => {
   try {
     const { expertId } = req.params;
-    const expertImages = await ExpertImage.find({ expertId });
+    const images = await RADashboardImage.find({ expertId });
 
-    if (!expertImages.length) {
+    if (!images.length) {
       return res.status(404).json({
         message: `No images found for expertId '${expertId}'`,
       });
@@ -414,13 +340,10 @@ router.get("/expert-images/:expertId", async (req, res) => {
 
     res.status(200).json({
       message: `Images for expertId '${expertId}' fetched successfully`,
-      data: expertImages,
+      data: images,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server Error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
