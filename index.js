@@ -302,6 +302,33 @@ router.get("/ra-dashboard/images", async (req, res) => {
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     RADashboardImage:
+ *       type: object
+ *       required:
+ *         - expertId
+ *         - imageurl
+ *         - type
+ *         - name
+ *       properties:
+ *         expertId:
+ *           type: string
+ *           description: The expert's ID
+ *         imageurl:
+ *           type: string
+ *           description: The URL of the image
+ *         type:
+ *           type: string
+ *           enum: ["blur", "marketing", "premium"]
+ *           description: The type of the image (blur, marketing, premium)
+ *         name:
+ *           type: string
+ *           description: The name of the image
+ */
+
+/**
+ * @swagger
  * /ra-dashboard/images/{expertId}:
  *   get:
  *     summary: Get all posters by ExpertID
