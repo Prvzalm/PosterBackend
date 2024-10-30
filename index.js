@@ -625,6 +625,10 @@ router.patch("/admin/poster/:id", async (req, res) => {
 
 /**
  * @swagger
+ * tags:
+ *   name: Banner
+ *   description: Banner management API
+ *
  * /banner:
  *   get:
  *     summary: Retrieve all banners
@@ -632,6 +636,12 @@ router.patch("/admin/poster/:id", async (req, res) => {
  *     responses:
  *       200:
  *         description: A list of banners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Banner'
  *       500:
  *         description: Server error
  *
@@ -643,27 +653,42 @@ router.patch("/admin/poster/:id", async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               type:
- *                 type: string
- *                 enum: [home, webinar, course]
- *                 description: Type of the banner
- *               imageurl:
- *                 type: string
- *                 description: URL of the banner image
- *               name:
- *                 type: string
- *                 description: Name of the banner
+ *             $ref: '#/components/schemas/BannerInput'
  *     responses:
  *       201:
  *         description: Banner created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Banner'
  *       400:
  *         description: Invalid input data
  *       500:
  *         description: Server error
  *
  * /banner/{id}:
+ *   get:
+ *     summary: Retrieve a banner by ID
+ *     tags: [Banner]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the banner to retrieve
+ *     responses:
+ *       200:
+ *         description: Banner retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Banner'
+ *       404:
+ *         description: Banner not found
+ *       500:
+ *         description: Server error
+ *
  *   delete:
  *     summary: Delete a banner by its ID
  *     tags: [Banner]
@@ -677,16 +702,99 @@ router.patch("/admin/poster/:id", async (req, res) => {
  *     responses:
  *       200:
  *         description: Banner deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Banner'
  *       404:
  *         description: Banner not found
  *       500:
  *         description: Server error
+ *
+ * components:
+ *   schemas:
+ *     Banner:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated id of the banner
+ *         type:
+ *           type: string
+ *           enum: [home, webinar, course]
+ *           description: Type of the banner
+ *         imageurl:
+ *           type: string
+ *           description: URL of the banner image
+ *         name:
+ *           type: string
+ *           description: Name of the banner
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date the banner was created
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date the banner was last updated
+ *       required:
+ *         - type
+ *         - imageurl
+ *         - name
+ *
+ *     BannerInput:
+ *       type: object
+ *       properties:
+ *         type:
+ *           type: string
+ *           enum: [home, webinar, course]
+ *           description: Type of the banner
+ *         imageurl:
+ *           type: string
+ *           description: URL of the banner image
+ *         name:
+ *           type: string
+ *           description: Name of the banner
+ *       required:
+ *         - type
+ *         - imageurl
+ *         - name
  */
 
+// Get all banners
 router.get("/banner", async (req, res) => {
   try {
     const banners = await Banner.find();
     res.status(200).json(banners);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+// Get a single banner by ID
+router.get("/banner/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate the ID format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid banner ID format." });
+    }
+
+    const banner = await Banner.findById(id);
+
+    if (!banner) {
+      return res
+        .status(404)
+        .json({ message: `No banner found with id '${id}'` });
+    }
+
+    res.status(200).json(banner);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -700,6 +808,14 @@ router.post("/banner", async (req, res) => {
     // Validate required fields
     if (!type || !imageurl || !name) {
       return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Validate 'type' field
+    const allowedTypes = ["home", "webinar", "course"];
+    if (!allowedTypes.includes(type)) {
+      return res
+        .status(400)
+        .json({ message: `Type must be one of: ${allowedTypes.join(", ")}` });
     }
 
     const newBanner = new Banner({
@@ -723,6 +839,11 @@ router.delete("/banner/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate the ID format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid banner ID format." });
+    }
+
     const deletedBanner = await Banner.findByIdAndDelete(id);
 
     if (!deletedBanner) {
@@ -739,5 +860,13 @@ router.delete("/banner/:id", async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
+// errorHandler.js
+const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Server Error", error: err.message });
+};
+
+app.use(errorHandler);
 
 app.use("/api", router);
