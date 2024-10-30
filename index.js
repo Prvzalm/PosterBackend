@@ -102,6 +102,32 @@ const PosterSchema = new mongoose.Schema(
 
 const Poster = mongoose.model("AdminPoster", PosterSchema);
 
+const bannerSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      required: true,
+      enum: ["home", "webinar", "course"], // Specifies allowed types
+      trim: true,
+    },
+    imageurl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  {
+    timestamps: true, // Adds createdAt and updatedAt timestamps
+  }
+);
+
+const Banner = mongoose.model("Banner", bannerSchema);
+
 /**
  * @swagger
  * /ra-dashboard/image:
@@ -591,6 +617,123 @@ router.patch("/admin/poster/:id", async (req, res) => {
     res.status(200).json({
       message: "Poster updated successfully",
       data: updatedPoster,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /banner:
+ *   get:
+ *     summary: Retrieve all banners
+ *     tags: [Banner]
+ *     responses:
+ *       200:
+ *         description: A list of banners
+ *       500:
+ *         description: Server error
+ *
+ *   post:
+ *     summary: Create a new banner
+ *     tags: [Banner]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [home, webinar, course]
+ *                 description: Type of the banner
+ *               imageurl:
+ *                 type: string
+ *                 description: URL of the banner image
+ *               name:
+ *                 type: string
+ *                 description: Name of the banner
+ *     responses:
+ *       201:
+ *         description: Banner created successfully
+ *       400:
+ *         description: Invalid input data
+ *       500:
+ *         description: Server error
+ *
+ * /banner/{id}:
+ *   delete:
+ *     summary: Delete a banner by its ID
+ *     tags: [Banner]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the banner to delete
+ *     responses:
+ *       200:
+ *         description: Banner deleted successfully
+ *       404:
+ *         description: Banner not found
+ *       500:
+ *         description: Server error
+ */
+
+router.get("/banner", async (req, res) => {
+  try {
+    const banners = await Banner.find();
+    res.status(200).json(banners);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+// Create a new banner
+router.post("/banner", async (req, res) => {
+  try {
+    const { type, imageurl, name } = req.body;
+
+    // Validate required fields
+    if (!type || !imageurl || !name) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const newBanner = new Banner({
+      type,
+      imageurl,
+      name,
+    });
+
+    await newBanner.save();
+    res.status(201).json({
+      message: "Banner created successfully",
+      data: newBanner,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+// Delete a banner by ID
+router.delete("/banner/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedBanner = await Banner.findByIdAndDelete(id);
+
+    if (!deletedBanner) {
+      return res
+        .status(404)
+        .json({ message: `No banner found with id '${id}'` });
+    }
+
+    res.status(200).json({
+      message: "Banner deleted successfully",
+      data: deletedBanner,
     });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
