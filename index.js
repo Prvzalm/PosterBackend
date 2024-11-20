@@ -128,6 +128,37 @@ const bannerSchema = new mongoose.Schema(
 
 const Banner = mongoose.model("Banner", bannerSchema);
 
+const FeedbackSchema = new mongoose.Schema(
+  {
+    star: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5, // Assuming a 1-5 rating system
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    userId: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    mobileNumber: {
+      type: String,
+      required: true,
+      match: /^[0-9]{10}$/, // Validation for a 10-digit mobile number
+    },
+  },
+  { timestamps: true } // Automatically adds createdAt and updatedAt fields
+);
+
+const Feedback = mongoose.model("Feedback", FeedbackSchema);
+
 /**
  * @swagger
  * /ra-dashboard/image:
