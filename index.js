@@ -21,7 +21,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "https://poster.copartner.in/api",
+        url: "https://apiuat.copartner.in/poster/api",
       },
     ],
   },
