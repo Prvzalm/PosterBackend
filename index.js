@@ -162,24 +162,19 @@ const Feedback = mongoose.model("Feedback", FeedbackSchema);
 const messageTemplateSchema = new mongoose.Schema({
   raid: {
     type: String,
-    required: true
   },
   templatename: {
     type: String,
-    required: true
   },
   headingcontent: {
     type: String,
-    required: true
   },
   footercontent: {
     type: String,
-    required: true
   },
   type: {
     type: String,
-    enum: ['text', 'html'],
-    required: true
+    // enum: ['text', 'html'],
   }
 });
 
@@ -999,12 +994,6 @@ router.patch('/template/:id', async (req, res) => {
  *   schemas:
  *     MessageTemplate:
  *       type: object
- *       required:
- *         - raid
- *         - templatename
- *         - headingcontent
- *         - footercontent
- *         - type
  *       properties:
  *         raid:
  *           type: string
@@ -1052,7 +1041,6 @@ router.patch('/template/:id', async (req, res) => {
  *     parameters:
  *       - in: path
  *         name: raid
- *         required: true
  *         description: The raid identifier (e.g., raid="template1")
  *         schema:
  *           type: string
@@ -1076,7 +1064,6 @@ router.patch('/template/:id', async (req, res) => {
  *     summary: Create a new message template
  *     description: Create a new message template by providing the necessary details.
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -1103,7 +1090,6 @@ router.patch('/template/:id', async (req, res) => {
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         description: The template ID
  *         schema:
  *           type: string
@@ -1125,7 +1111,6 @@ router.patch('/template/:id', async (req, res) => {
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         description: The template ID
  *         schema:
  *           type: string
