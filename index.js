@@ -926,7 +926,7 @@ router.get('/template', async (req, res) => {
 
 router.get('/template/:raid', async (req, res) => {
   try {
-    const template = await MessageTemplate.findOne({ raid: req.params.raid });
+    const template = await MessageTemplate.find({ raid: req.params.raid });
     if (!template) {
       return res.status(404).send({ message: 'Template not found with the provided raid' });
     }
