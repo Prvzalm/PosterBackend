@@ -159,26 +159,32 @@ const FeedbackSchema = new mongoose.Schema(
 
 const Feedback = mongoose.model("Feedback", FeedbackSchema);
 
-const messageTemplateSchema = new mongoose.Schema({
-  raid: {
-    type: String,
+const messageTemplateSchema = new mongoose.Schema(
+  {
+    raid: {
+      type: String,
+    },
+    templatename: {
+      type: String,
+    },
+    headingcontent: {
+      type: String,
+    },
+    footercontent: {
+      type: String,
+    },
+    type: {
+      type: String,
+      // enum: ['text', 'html'],
+    },
   },
-  templatename: {
-    type: String,
-  },
-  headingcontent: {
-    type: String,
-  },
-  footercontent: {
-    type: String,
-  },
-  type: {
-    type: String,
-    // enum: ['text', 'html'],
-  }
-});
+  { timestamps: true }
+);
 
-const MessageTemplate = mongoose.model('MessageTemplate', messageTemplateSchema);
+const MessageTemplate = mongoose.model(
+  "MessageTemplate",
+  messageTemplateSchema
+);
 
 /**
  * @swagger
@@ -915,7 +921,7 @@ router.delete("/banner/:id", async (req, res) => {
 
 // MESSAGE TEMPLATE API'S
 
-router.get('/template', async (req, res) => {
+router.get("/template", async (req, res) => {
   try {
     const templates = await MessageTemplate.find();
     res.json(templates);
@@ -924,11 +930,13 @@ router.get('/template', async (req, res) => {
   }
 });
 
-router.get('/template/:raid', async (req, res) => {
+router.get("/template/:raid", async (req, res) => {
   try {
     const template = await MessageTemplate.find({ raid: req.params.raid });
     if (!template) {
-      return res.status(404).send({ message: 'Template not found with the provided raid' });
+      return res
+        .status(404)
+        .send({ message: "Template not found with the provided raid" });
     }
     res.status(200).json(template);
   } catch (err) {
@@ -937,7 +945,7 @@ router.get('/template/:raid', async (req, res) => {
 });
 
 // POST a new message template
-router.post('/template', async (req, res) => {
+router.post("/template", async (req, res) => {
   const { raid, templatename, headingcontent, footercontent, type } = req.body;
 
   const newTemplate = new MessageTemplate({
@@ -945,7 +953,7 @@ router.post('/template', async (req, res) => {
     templatename,
     headingcontent,
     footercontent,
-    type
+    type,
   });
 
   try {
@@ -957,20 +965,22 @@ router.post('/template', async (req, res) => {
 });
 
 // DELETE a message template by ID
-router.delete('/template/:id', async (req, res) => {
+router.delete("/template/:id", async (req, res) => {
   try {
-    const deletedTemplate = await MessageTemplate.findByIdAndDelete(req.params.id);
+    const deletedTemplate = await MessageTemplate.findByIdAndDelete(
+      req.params.id
+    );
     if (!deletedTemplate) {
-      return res.status(404).send({ message: 'Template not found' });
+      return res.status(404).send({ message: "Template not found" });
     }
-    res.status(200).send({ message: 'Template deleted successfully' });
+    res.status(200).send({ message: "Template deleted successfully" });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
 // PATCH update a message template by ID
-router.patch('/template/:id', async (req, res) => {
+router.patch("/template/:id", async (req, res) => {
   const { raid, templatename, headingcontent, footercontent, type } = req.body;
 
   try {
@@ -980,7 +990,7 @@ router.patch('/template/:id', async (req, res) => {
       { new: true }
     );
     if (!updatedTemplate) {
-      return res.status(404).send({ message: 'Template not found' });
+      return res.status(404).send({ message: "Template not found" });
     }
     res.status(200).json(updatedTemplate);
   } catch (err) {
