@@ -159,6 +159,32 @@ const FeedbackSchema = new mongoose.Schema(
 
 const Feedback = mongoose.model("Feedback", FeedbackSchema);
 
+const messageTemplateSchema = new mongoose.Schema({
+  raid: {
+    type: String,
+    required: true
+  },
+  templatename: {
+    type: String,
+    required: true
+  },
+  headingcontent: {
+    type: String,
+    required: true
+  },
+  footercontent: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['text', 'html'],
+    required: true
+  }
+});
+
+const MessageTemplate = mongoose.model('MessageTemplate', messageTemplateSchema);
+
 /**
  * @swagger
  * /ra-dashboard/image:
@@ -891,6 +917,238 @@ router.delete("/banner/:id", async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
+// MESSAGE TEMPLATE API'S
+
+router.get('/', async (req, res) => {
+  try {
+    const templates = await MessageTemplate.find();
+    res.json(templates);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+router.get('/raid/:raid', async (req, res) => {
+  try {
+    const template = await MessageTemplate.findOne({ raid: req.params.raid });
+    if (!template) {
+      return res.status(404).send({ message: 'Template not found with the provided raid' });
+    }
+    res.status(200).json(template);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// POST a new message template
+router.post('/', async (req, res) => {
+  const { raid, templatename, headingcontent, footercontent, type } = req.body;
+
+  const newTemplate = new MessageTemplate({
+    raid,
+    templatename,
+    headingcontent,
+    footercontent,
+    type
+  });
+
+  try {
+    const savedTemplate = await newTemplate.save();
+    res.status(201).json(savedTemplate);
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+});
+
+// DELETE a message template by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedTemplate = await MessageTemplate.findByIdAndDelete(req.params.id);
+    if (!deletedTemplate) {
+      return res.status(404).send({ message: 'Template not found' });
+    }
+    res.status(200).send({ message: 'Template deleted successfully' });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// PATCH update a message template by ID
+router.patch('/:id', async (req, res) => {
+  const { raid, templatename, headingcontent, footercontent, type } = req.body;
+
+  try {
+    const updatedTemplate = await MessageTemplate.findByIdAndUpdate(
+      req.params.id,
+      { raid, templatename, headingcontent, footercontent, type },
+      { new: true }
+    );
+    if (!updatedTemplate) {
+      return res.status(404).send({ message: 'Template not found' });
+    }
+    res.status(200).json(updatedTemplate);
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     MessageTemplate:
+ *       type: object
+ *       required:
+ *         - raid
+ *         - templatename
+ *         - headingcontent
+ *         - footercontent
+ *         - type
+ *       properties:
+ *         raid:
+ *           type: string
+ *           description: The raid identifier (e.g., template1, template2, etc.)
+ *         templatename:
+ *           type: string
+ *           description: The name of the message template
+ *         headingcontent:
+ *           type: string
+ *           description: The content for the heading section
+ *         footercontent:
+ *           type: string
+ *           description: The content for the footer section
+ *         type:
+ *           type: string
+ *           enum: [text, html]
+ *           description: The type of message (either `text` or `html`)
+ */
+
+/**
+ * @swagger
+ * /templates:
+ *   get:
+ *     summary: Retrieve all message templates
+ *     description: Retrieve a list of all available message templates.
+ *     responses:
+ *       200:
+ *         description: A list of message templates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/MessageTemplate'
+ *       500:
+ *         description: Server error while fetching templates
+ */
+
+/**
+ * @swagger
+ * /templates/raid/{raid}:
+ *   get:
+ *     summary: Retrieve a message template by raid
+ *     description: Retrieve the details of a specific message template using its raid identifier.
+ *     parameters:
+ *       - in: path
+ *         name: raid
+ *         required: true
+ *         description: The raid identifier (e.g., raid="template1")
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A message template object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageTemplate'
+ *       404:
+ *         description: Template not found with the provided raid
+ *       500:
+ *         description: Server error while fetching the template
+ */
+
+/**
+ * @swagger
+ * /templates:
+ *   post:
+ *     summary: Create a new message template
+ *     description: Create a new message template by providing the necessary details.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MessageTemplate'
+ *     responses:
+ *       201:
+ *         description: Message template created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageTemplate'
+ *       400:
+ *         description: Invalid input, failed to create the message template
+ *       500:
+ *         description: Server error while creating the template
+ */
+
+/**
+ * @swagger
+ * /templates/{id}:
+ *   delete:
+ *     summary: Delete a message template by ID
+ *     description: Delete a message template using the provided template ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The template ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Template deleted successfully
+ *       404:
+ *         description: Template not found with the provided ID
+ *       500:
+ *         description: Server error while deleting the template
+ */
+
+/**
+ * @swagger
+ * /templates/{id}:
+ *   patch:
+ *     summary: Update a message template by ID
+ *     description: Update the details of a message template using the provided template ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The template ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MessageTemplate'
+ *     responses:
+ *       200:
+ *         description: Template updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageTemplate'
+ *       404:
+ *         description: Template not found with the provided ID
+ *       400:
+ *         description: Invalid input for updating the template
+ *       500:
+ *         description: Server error while updating the template
+ */
 
 // errorHandler.js
 const errorHandler = (err, req, res, next) => {
