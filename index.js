@@ -920,7 +920,7 @@ router.delete("/banner/:id", async (req, res) => {
 
 // MESSAGE TEMPLATE API'S
 
-router.get('/', async (req, res) => {
+router.get('/template', async (req, res) => {
   try {
     const templates = await MessageTemplate.find();
     res.json(templates);
@@ -929,7 +929,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/raid/:raid', async (req, res) => {
+router.get('/template/:raid', async (req, res) => {
   try {
     const template = await MessageTemplate.findOne({ raid: req.params.raid });
     if (!template) {
@@ -942,7 +942,7 @@ router.get('/raid/:raid', async (req, res) => {
 });
 
 // POST a new message template
-router.post('/', async (req, res) => {
+router.post('/template', async (req, res) => {
   const { raid, templatename, headingcontent, footercontent, type } = req.body;
 
   const newTemplate = new MessageTemplate({
@@ -962,7 +962,7 @@ router.post('/', async (req, res) => {
 });
 
 // DELETE a message template by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/template/:id', async (req, res) => {
   try {
     const deletedTemplate = await MessageTemplate.findByIdAndDelete(req.params.id);
     if (!deletedTemplate) {
@@ -975,7 +975,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // PATCH update a message template by ID
-router.patch('/:id', async (req, res) => {
+router.patch('/template/:id', async (req, res) => {
   const { raid, templatename, headingcontent, footercontent, type } = req.body;
 
   try {
@@ -1026,7 +1026,7 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /templates:
+ * /template:
  *   get:
  *     summary: Retrieve all message templates
  *     description: Retrieve a list of all available message templates.
@@ -1045,7 +1045,7 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /templates/raid/{raid}:
+ * /template/{raid}:
  *   get:
  *     summary: Retrieve a message template by raid
  *     description: Retrieve the details of a specific message template using its raid identifier.
@@ -1071,7 +1071,7 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /templates:
+ * /template:
  *   post:
  *     summary: Create a new message template
  *     description: Create a new message template by providing the necessary details.
@@ -1096,7 +1096,7 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /templates/{id}:
+ * /template/{id}:
  *   delete:
  *     summary: Delete a message template by ID
  *     description: Delete a message template using the provided template ID.
@@ -1118,7 +1118,7 @@ router.patch('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /templates/{id}:
+ * /template/{id}:
  *   patch:
  *     summary: Update a message template by ID
  *     description: Update the details of a message template using the provided template ID.
