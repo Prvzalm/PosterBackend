@@ -923,7 +923,7 @@ router.delete("/banner/:id", async (req, res) => {
 
 router.get("/template", async (req, res) => {
   try {
-    const templates = await MessageTemplate.find();
+    const templates = await MessageTemplate.find().sort({ createdAt: -1 });
     res.json(templates);
   } catch (err) {
     res.status(500).send({ error: err.message });
@@ -932,7 +932,7 @@ router.get("/template", async (req, res) => {
 
 router.get("/template/:raid", async (req, res) => {
   try {
-    const template = await MessageTemplate.find({ raid: req.params.raid });
+    const template = await MessageTemplate.find({ raid: req.params.raid }).sort({ createdAt: -1 });
     if (!template) {
       return res
         .status(404)
