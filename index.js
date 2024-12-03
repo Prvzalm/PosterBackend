@@ -186,13 +186,15 @@ const MessageTemplate = mongoose.model(
   messageTemplateSchema
 );
 
-const CopartnerSchema = new mongoose.Schema({
-  copartnerId: { type: String, required: true, unique: true },
-  links: [{ type: String, required: true }], // Array of links
-}, { timestamps: true }); // Automatically add createdAt and updatedAt fields
+const CopartnerSchema = new mongoose.Schema(
+  {
+    copartnerId: { type: String, required: true, unique: true },
+    links: [{ type: String, required: true }], // Array of links
+  },
+  { timestamps: true }
+); // Automatically add createdAt and updatedAt fields
 
-const CopartnerLinks = mongoose.model('Copartner', CopartnerSchema);
-
+const CopartnerLinks = mongoose.model("CopartnerLink", CopartnerSchema);
 
 /**
  * @swagger
@@ -940,7 +942,9 @@ router.get("/template", async (req, res) => {
 
 router.get("/template/:raid", async (req, res) => {
   try {
-    const template = await MessageTemplate.find({ raid: req.params.raid }).sort({ createdAt: -1 });
+    const template = await MessageTemplate.find({ raid: req.params.raid }).sort(
+      { createdAt: -1 }
+    );
     if (!template) {
       return res
         .status(404)
@@ -1157,7 +1161,7 @@ router.patch("/template/:id", async (req, res) => {
  * @swagger
  * components:
  *   schemas:
- *     Copartner:
+ *     CopartnerLink:
  *       type: object
  *       required:
  *         - copartnerId
@@ -1175,39 +1179,46 @@ router.patch("/template/:id", async (req, res) => {
 
 /**
  * @swagger
+ * tags:
+ *   name: CopartnerLinks
+ *   description: API for managing copartner links
+ */
+
+/**
+ * @swagger
  * /copartnerLinks:
  *   post:
  *     summary: Create a new copartner with links
- *     tags: [Copartners]
+ *     tags: [CopartnerLinks]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Copartner'
+ *             $ref: '#/components/schemas/CopartnerLink'
  *     responses:
  *       201:
  *         description: Copartner created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 copartner:
+ *                   $ref: '#/components/schemas/CopartnerLink'
  *       400:
  *         description: Invalid input
  */
-router.post('/copartnerLinks', async (req, res) => {
-  try {
-    const { copartnerId, links } = req.body;
-    const newCopartner = new CopartnerLinks({ copartnerId, links });
-    await newCopartner.save();
-    res.status(201).json({ message: 'Copartner created successfully', copartner: newCopartner });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
 
 /**
  * @swagger
  * /copartnerLinks:
  *   get:
  *     summary: Retrieve all copartners
- *     tags: [Copartners]
+ *     tags: [CopartnerLinks]
  *     responses:
  *       200:
  *         description: List of all copartners
@@ -1216,9 +1227,52 @@ router.post('/copartnerLinks', async (req, res) => {
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Copartner'
+ *                 $ref: '#/components/schemas/CopartnerLink'
+ *       500:
+ *         description: Server error
  */
-router.get('/copartnerLinks', async (req, res) => {
+
+/**
+ * @swagger
+ * /copartnerLinks/{copartnerId}:
+ *   get:
+ *     summary: Retrieve links by copartnerId
+ *     tags: [CopartnerLinks]
+ *     parameters:
+ *       - in: path
+ *         name: copartnerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The ID of the copartner
+ *     responses:
+ *       200:
+ *         description: Links for the specified copartner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CopartnerLink'
+ *       404:
+ *         description: Copartner not found
+ *       500:
+ *         description: Server error
+ */
+
+router.post("/copartnerLinks", async (req, res) => {
+  try {
+    const { copartnerId, links } = req.body;
+    const newCopartner = new CopartnerLinks({ copartnerId, links });
+    await newCopartner.save();
+    res.status(201).json({
+      message: "Copartner created successfully",
+      copartner: newCopartner,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get("/copartnerLinks", async (req, res) => {
   try {
     const copartners = await CopartnerLinks.find();
     res.status(200).json(copartners);
@@ -1227,35 +1281,12 @@ router.get('/copartnerLinks', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /copartnerLinks/{copartnerId}:
- *   get:
- *     summary: Retrieve links by copartnerId
- *     tags: [Copartners]
- *     parameters:
- *       - in: path
- *         name: copartnerId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the copartner
- *     responses:
- *       200:
- *         description: Links for the specified copartner
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Copartner'
- *       404:
- *         description: Copartner not found
- */
-router.get('/copartnerLinks/:copartnerId', async (req, res) => {
+router.get("/copartnerLinks/:copartnerId", async (req, res) => {
   try {
     const { copartnerId } = req.params;
     const copartner = await CopartnerLinks.findOne({ copartnerId });
     if (!copartner) {
-      return res.status(404).json({ error: 'Copartner not found' });
+      return res.status(404).json({ error: "Copartner not found" });
     }
     res.status(200).json(copartner);
   } catch (error) {
