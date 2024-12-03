@@ -1175,7 +1175,7 @@ router.patch("/template/:id", async (req, res) => {
 
 /**
  * @swagger
- * /copartners:
+ * /copartnerLinks:
  *   post:
  *     summary: Create a new copartner with links
  *     tags: [Copartners]
@@ -1204,7 +1204,7 @@ router.post('/copartnerLinks', async (req, res) => {
 
 /**
  * @swagger
- * /copartners:
+ * /copartnerLinks:
  *   get:
  *     summary: Retrieve all copartners
  *     tags: [Copartners]
@@ -1229,7 +1229,7 @@ router.get('/copartnerLinks', async (req, res) => {
 
 /**
  * @swagger
- * /copartners/{copartnerId}:
+ * /copartnerLinks/{copartnerId}:
  *   get:
  *     summary: Retrieve links by copartnerId
  *     tags: [Copartners]
