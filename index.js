@@ -186,6 +186,14 @@ const MessageTemplate = mongoose.model(
   messageTemplateSchema
 );
 
+const CopartnerSchema = new mongoose.Schema({
+  copartnerId: { type: String, required: true, unique: true },
+  links: [{ type: String, required: true }], // Array of links
+}, { timestamps: true }); // Automatically add createdAt and updatedAt fields
+
+const CopartnerLinks = mongoose.model('Copartner', CopartnerSchema);
+
+
 /**
  * @swagger
  * /ra-dashboard/image:
@@ -1144,6 +1152,116 @@ router.patch("/template/:id", async (req, res) => {
  *       500:
  *         description: Server error while updating the template
  */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Copartner:
+ *       type: object
+ *       required:
+ *         - copartnerId
+ *         - links
+ *       properties:
+ *         copartnerId:
+ *           type: string
+ *           description: The unique ID of the copartner
+ *         links:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of links associated with the copartner
+ */
+
+/**
+ * @swagger
+ * /copartners:
+ *   post:
+ *     summary: Create a new copartner with links
+ *     tags: [Copartners]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Copartner'
+ *     responses:
+ *       201:
+ *         description: Copartner created successfully
+ *       400:
+ *         description: Invalid input
+ */
+router.post('/copartnerLinks', async (req, res) => {
+  try {
+    const { copartnerId, links } = req.body;
+    const newCopartner = new CopartnerLinks({ copartnerId, links });
+    await newCopartner.save();
+    res.status(201).json({ message: 'Copartner created successfully', copartner: newCopartner });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /copartners:
+ *   get:
+ *     summary: Retrieve all copartners
+ *     tags: [Copartners]
+ *     responses:
+ *       200:
+ *         description: List of all copartners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Copartner'
+ */
+router.get('/copartnerLinks', async (req, res) => {
+  try {
+    const copartners = await CopartnerLinks.find();
+    res.status(200).json(copartners);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /copartners/{copartnerId}:
+ *   get:
+ *     summary: Retrieve links by copartnerId
+ *     tags: [Copartners]
+ *     parameters:
+ *       - in: path
+ *         name: copartnerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the copartner
+ *     responses:
+ *       200:
+ *         description: Links for the specified copartner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Copartner'
+ *       404:
+ *         description: Copartner not found
+ */
+router.get('/copartnerLinks/:copartnerId', async (req, res) => {
+  try {
+    const { copartnerId } = req.params;
+    const copartner = await CopartnerLinks.findOne({ copartnerId });
+    if (!copartner) {
+      return res.status(404).json({ error: 'Copartner not found' });
+    }
+    res.status(200).json(copartner);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // errorHandler.js
 const errorHandler = (err, req, res, next) => {
