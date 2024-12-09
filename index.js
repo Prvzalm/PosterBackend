@@ -107,7 +107,7 @@ const bannerSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["home", "webinar", "course", "premium"], // Specifies allowed types
+      enum: ["home", "webinar", "course", "premium", "website"], // Specifies allowed types
       trim: true,
     },
     imageurl: {
@@ -794,7 +794,7 @@ router.patch("/admin/poster/:id", async (req, res) => {
  *           description: The auto-generated id of the banner
  *         type:
  *           type: string
- *           enum: [home, webinar, course, "premium"]
+ *           enum: [home, webinar, course, "premium", "website"]
  *           description: Type of the banner
  *         imageurl:
  *           type: string
@@ -820,7 +820,7 @@ router.patch("/admin/poster/:id", async (req, res) => {
  *       properties:
  *         type:
  *           type: string
- *           enum: [home, webinar, course, "premium"]
+ *           enum: [home, webinar, course, "premium", "website"]
  *           description: Type of the banner
  *         imageurl:
  *           type: string
@@ -879,7 +879,7 @@ router.post("/banner", async (req, res) => {
     }
 
     // Validate 'type' field
-    const allowedTypes = ["home", "webinar", "course", "premium"];
+    const allowedTypes = ["home", "webinar", "course", "premium", "website"];
     if (!allowedTypes.includes(type)) {
       return res
         .status(400)
